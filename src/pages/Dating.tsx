@@ -1,9 +1,13 @@
-
 import React, { useState } from 'react';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchModal } from '@/components/MatchModal';
 import { TopBar } from '@/components/TopBar';
 import { BottomActions } from '@/components/BottomActions';
+import { DatingCoachBot } from '@/components/DatingCoachBot';
+import { ProfileOptimizer } from '@/components/ProfileOptimizer';
+import { SmartMatchRecommendations } from '@/components/SmartMatchRecommendations';
+import { Button } from '@/components/ui/button';
+import { Bot, Lightbulb, Brain } from 'lucide-react';
 
 // Mock profile data
 const mockProfiles = [
@@ -46,6 +50,9 @@ export default function Dating() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [matchedProfile, setMatchedProfile] = useState(null);
   const [showMatch, setShowMatch] = useState(false);
+  const [showCoachBot, setShowCoachBot] = useState(false);
+  const [showProfileOptimizer, setShowProfileOptimizer] = useState(false);
+  const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (currentIndex >= profiles.length) return;
@@ -72,6 +79,39 @@ export default function Dating() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       <TopBar />
       
+      {/* AI Features Panel */}
+      <div className="fixed top-20 right-4 z-40 space-y-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm"
+          onClick={() => setShowCoachBot(true)}
+        >
+          <Bot className="w-4 h-4 mr-1" />
+          AI Coach
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm"
+          onClick={() => setShowProfileOptimizer(true)}
+        >
+          <Lightbulb className="w-4 h-4 mr-1" />
+          Optimize
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm"
+          onClick={() => setShowSmartRecommendations(true)}
+        >
+          <Brain className="w-4 h-4 mr-1" />
+          Smart Matches
+        </Button>
+      </div>
+      
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-140px)] px-4 py-8">
         {currentProfile ? (
           <ProfileCard 
@@ -97,6 +137,18 @@ export default function Dating() {
           profile={matchedProfile}
           onClose={closeMatchModal}
         />
+      )}
+
+      {showCoachBot && (
+        <DatingCoachBot onClose={() => setShowCoachBot(false)} />
+      )}
+
+      {showProfileOptimizer && (
+        <ProfileOptimizer onClose={() => setShowProfileOptimizer(false)} />
+      )}
+
+      {showSmartRecommendations && (
+        <SmartMatchRecommendations onClose={() => setShowSmartRecommendations(false)} />
       )}
     </div>
   );
