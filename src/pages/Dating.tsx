@@ -6,8 +6,9 @@ import { BottomActions } from '@/components/BottomActions';
 import { DatingCoachBot } from '@/components/DatingCoachBot';
 import { ProfileOptimizer } from '@/components/ProfileOptimizer';
 import { SmartMatchRecommendations } from '@/components/SmartMatchRecommendations';
+import { ProfileSetup } from '@/components/ProfileSetup';
 import { Button } from '@/components/ui/button';
-import { Bot, Lightbulb, Brain } from 'lucide-react';
+import { Bot, Lightbulb, Brain, Settings } from 'lucide-react';
 
 // Mock profile data
 const mockProfiles = [
@@ -53,6 +54,8 @@ export default function Dating() {
   const [showCoachBot, setShowCoachBot] = useState(false);
   const [showProfileOptimizer, setShowProfileOptimizer] = useState(false);
   const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (currentIndex >= profiles.length) return;
@@ -73,6 +76,13 @@ export default function Dating() {
     setMatchedProfile(null);
   };
 
+  const handleProfileComplete = (profileData: any) => {
+    console.log('Profile completed:', profileData);
+    setUserProfile(profileData);
+    setShowProfileSetup(false);
+    // Here you would typically save the profile data to your backend
+  };
+
   const currentProfile = profiles[currentIndex];
 
   return (
@@ -81,6 +91,16 @@ export default function Dating() {
       
       {/* AI Features Panel */}
       <div className="fixed top-20 right-4 z-40 space-y-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-white/90 backdrop-blur-sm"
+          onClick={() => setShowProfileSetup(true)}
+        >
+          <Settings className="w-4 h-4 mr-1" />
+          Setup Profile
+        </Button>
+        
         <Button
           variant="outline"
           size="sm"
@@ -149,6 +169,13 @@ export default function Dating() {
 
       {showSmartRecommendations && (
         <SmartMatchRecommendations onClose={() => setShowSmartRecommendations(false)} />
+      )}
+
+      {showProfileSetup && (
+        <ProfileSetup 
+          onClose={() => setShowProfileSetup(false)}
+          onComplete={handleProfileComplete}
+        />
       )}
     </div>
   );
