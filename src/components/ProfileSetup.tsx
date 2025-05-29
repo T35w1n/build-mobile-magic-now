@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ChevronLeft, ChevronRight, User, Heart, Briefcase, Music, Flag } from 'lucide-react';
 import { LanguageSelector } from './LanguageSelector';
 import { translate } from '@/utils/translations';
+import { useProfile } from '@/hooks/useProfile';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileSetupProps {
   onClose: () => void;
@@ -18,8 +20,12 @@ interface ProfileSetupProps {
 }
 
 export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
-  const [currentStep, setCurrentStep] = useState(-1); // Start with language selection
+  const [currentStep, setCurrentStep] = useState(-1);
   const [language, setLanguage] = useState('en');
+  const [loading, setLoading] = useState(false);
+  const { updateProfile } = useProfile();
+  const { toast } = useToast();
+  
   const [profileData, setProfileData] = useState<any>({
     personality: {},
     values: {},
@@ -59,6 +65,47 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
         [field]: value
       }
     }));
+  };
+
+  const handleComplete = async () => {
+    setLoading(true);
+    try {
+      // Transform profile data for database
+      const dbProfileData = {
+        personality_traits: profileData.personality,
+        values_beliefs: profileData.values,
+        lifestyle_habits: profileData.lifestyle,
+        interests: {
+          hobbies: profileData.interests,
+          turn_offs: profileData.turnOffs,
+          work: profileData.work,
+          relationship_preferences: profileData.relationship
+        },
+        job_title: profileData.work?.occupation,
+        education: profileData.work?.education,
+        bio: profileData.relationship?.bio,
+        languages: language ? [language] : ['en']
+      };
+
+      const { error } = await updateProfile(dbProfileData);
+      
+      if (!error) {
+        toast({
+          title: "Profile completed!",
+          description: "Your profile has been saved successfully."
+        });
+        onComplete({ ...profileData, language });
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderLanguageStep = () => (
@@ -696,7 +743,7 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete({ ...profileData, language });
+      handleComplete();
     }
   };
 
@@ -708,7 +755,6 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
     }
   };
 
-  // Language selection step
   if (currentStep === -1) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -741,7 +787,6 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
             </div>
           </div>
           
-          {/* Progress bar */}
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-pink-500 h-2 rounded-full transition-all duration-300"
@@ -765,8 +810,8 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
               {translate("previous", language)}
             </Button>
             
-            <Button onClick={nextStep}>
-              {currentStep === steps.length - 1 ? translate("completeProfile", language) : translate("next", language)}
+            <Button onClick={nextStep} disabled={loading}>
+              {loading ? 'Saving...' : (currentStep === steps.length - 1 ? translate("completeProfile", language) : translate("next", language))}
               {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4 ml-1" />}
             </Button>
           </div>

@@ -9,7 +9,185 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: []
+      }
+      "love ra": {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      matches: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          is_mutual: boolean | null
+          target_user_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          is_mutual?: boolean | null
+          target_user_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          is_mutual?: boolean | null
+          target_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          message_type: string | null
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          bio: string | null
+          company: string | null
+          created_at: string | null
+          education: string | null
+          email: string | null
+          full_name: string | null
+          height: number | null
+          id: string
+          interested_in: string | null
+          interests: Json | null
+          job_title: string | null
+          languages: string[] | null
+          lifestyle_habits: Json | null
+          location: string | null
+          personality_traits: Json | null
+          photos: string[] | null
+          race: string | null
+          sexual_preference: string | null
+          updated_at: string | null
+          values_beliefs: Json | null
+          verified: boolean | null
+        }
+        Insert: {
+          age?: number | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          education?: string | null
+          email?: string | null
+          full_name?: string | null
+          height?: number | null
+          id: string
+          interested_in?: string | null
+          interests?: Json | null
+          job_title?: string | null
+          languages?: string[] | null
+          lifestyle_habits?: Json | null
+          location?: string | null
+          personality_traits?: Json | null
+          photos?: string[] | null
+          race?: string | null
+          sexual_preference?: string | null
+          updated_at?: string | null
+          values_beliefs?: Json | null
+          verified?: boolean | null
+        }
+        Update: {
+          age?: number | null
+          bio?: string | null
+          company?: string | null
+          created_at?: string | null
+          education?: string | null
+          email?: string | null
+          full_name?: string | null
+          height?: number | null
+          id?: string
+          interested_in?: string | null
+          interests?: Json | null
+          job_title?: string | null
+          languages?: string[] | null
+          lifestyle_habits?: Json | null
+          location?: string | null
+          personality_traits?: Json | null
+          photos?: string[] | null
+          race?: string | null
+          sexual_preference?: string | null
+          updated_at?: string | null
+          values_beliefs?: Json | null
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
