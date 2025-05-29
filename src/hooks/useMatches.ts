@@ -32,10 +32,7 @@ export function useMatches() {
     try {
       const { data, error } = await supabase
         .from('matches')
-        .select(`
-          *,
-          target_profile:profiles!target_user_id(*)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_mutual', true)
         .order('created_at', { ascending: false });
@@ -43,7 +40,23 @@ export function useMatches() {
       if (error) {
         console.error('Error fetching matches:', error);
       } else {
-        setMatches(data || []);
+        // Fetch profile data separately for each match
+        const matchesWithProfiles = await Promise.all(
+          (data || []).map(async (match) => {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', match.target_user_id)
+              .single();
+            
+            return {
+              ...match,
+              target_profile: profileData
+            } as Match;
+          })
+        );
+        
+        setMatches(matchesWithProfiles);
       }
     } catch (error) {
       console.error('Error fetching matches:', error);
