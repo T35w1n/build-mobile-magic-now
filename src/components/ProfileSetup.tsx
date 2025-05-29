@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight, User, Heart, Briefcase, Music, Flag } from 'lucide-react';
+import { LanguageSelector } from './LanguageSelector';
+import { translate } from '@/utils/translations';
 
 interface ProfileSetupProps {
   onClose: () => void;
@@ -17,7 +18,8 @@ interface ProfileSetupProps {
 }
 
 export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(-1); // Start with language selection
+  const [language, setLanguage] = useState('en');
   const [profileData, setProfileData] = useState<any>({
     personality: {},
     values: {},
@@ -29,12 +31,12 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
   });
 
   const steps = [
-    { title: "Personality Traits", icon: <User className="w-5 h-5" /> },
-    { title: "Values & Beliefs", icon: <Flag className="w-5 h-5" /> },
-    { title: "Lifestyle", icon: <Heart className="w-5 h-5" /> },
-    { title: "Work & Education", icon: <Briefcase className="w-5 h-5" /> },
-    { title: "Relationship Goals", icon: <Heart className="w-5 h-5" /> },
-    { title: "Interests & Hobbies", icon: <Music className="w-5 h-5" /> }
+    { title: translate("personalityTraits", language), icon: <User className="w-5 h-5" /> },
+    { title: translate("valuesBeliefs", language), icon: <Flag className="w-5 h-5" /> },
+    { title: translate("lifestyle", language), icon: <Heart className="w-5 h-5" /> },
+    { title: translate("workEducation", language), icon: <Briefcase className="w-5 h-5" /> },
+    { title: translate("relationshipGoals", language), icon: <Heart className="w-5 h-5" /> },
+    { title: translate("interestsHobbies", language), icon: <Music className="w-5 h-5" /> }
   ];
 
   const handleMultiSelect = (category: string, value: string) => {
@@ -59,115 +61,182 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
     }));
   };
 
+  const renderLanguageStep = () => (
+    <div className="space-y-6 text-center">
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-gray-800">Welcome! / Welkom!</h2>
+        <p className="text-gray-600">Choose your preferred language to continue with your profile setup.</p>
+        <p className="text-gray-600">Kies jou voorkeur taal om voort te gaan met jou profiel opstelling.</p>
+      </div>
+      
+      <div className="flex justify-center">
+        <LanguageSelector selectedLanguage={language} onLanguageChange={setLanguage} />
+      </div>
+      
+      <div className="space-y-3 pt-4">
+        <Button 
+          onClick={() => {
+            setLanguage('en');
+            setCurrentStep(0);
+          }}
+          className="w-full"
+          variant={language === 'en' ? 'default' : 'outline'}
+        >
+          🇺🇸 Continue in English
+        </Button>
+        <Button 
+          onClick={() => {
+            setLanguage('af');
+            setCurrentStep(0);
+          }}
+          className="w-full"
+          variant={language === 'af' ? 'default' : 'outline'}
+        >
+          🇿🇦 Gaan voort in Afrikaans
+        </Button>
+      </div>
+    </div>
+  );
+
   const renderPersonalityStep = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-base font-semibold">Social Energy</Label>
+        <Label className="text-base font-semibold">{translate("socialEnergy", language)}</Label>
         <RadioGroup 
           value={profileData.personality.socialEnergy || ''} 
           onValueChange={(value) => handleSingleSelect('personality', 'socialEnergy', value)}
           className="mt-2"
         >
-          {['Introvert', 'Extrovert', 'Ambivert'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'introvert', label: translate("introvert", language) },
+            { key: 'extrovert', label: translate("extrovert", language) },
+            { key: 'ambivert', label: translate("ambivert", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Decision Making</Label>
+        <Label className="text-base font-semibold">{translate("decisionMaking", language)}</Label>
         <RadioGroup 
           value={profileData.personality.decisionMaking || ''} 
           onValueChange={(value) => handleSingleSelect('personality', 'decisionMaking', value)}
           className="mt-2"
         >
-          {['Emotional', 'Logical', 'Balanced'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'emotional', label: translate("emotional", language) },
+            { key: 'logical', label: translate("logical", language) },
+            { key: 'balanced', label: translate("balanced", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Planning Style</Label>
+        <Label className="text-base font-semibold">{translate("planningStyle", language)}</Label>
         <RadioGroup 
           value={profileData.personality.planningStyle || ''} 
           onValueChange={(value) => handleSingleSelect('personality', 'planningStyle', value)}
           className="mt-2"
         >
-          {['Spontaneous', 'Planner', 'Flexible'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'spontaneous', label: translate("spontaneous", language) },
+            { key: 'planner', label: translate("planner", language) },
+            { key: 'flexible', label: translate("flexible", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Activity Level</Label>
+        <Label className="text-base font-semibold">{translate("activityLevel", language)}</Label>
         <RadioGroup 
           value={profileData.personality.activityLevel || ''} 
           onValueChange={(value) => handleSingleSelect('personality', 'activityLevel', value)}
           className="mt-2"
         >
-          {['Adventurous', 'Homebody', 'Balanced'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'adventurous', label: translate("adventurous", language) },
+            { key: 'homebody', label: translate("homebody", language) },
+            { key: 'balanced', label: translate("balanced", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Romance Style</Label>
+        <Label className="text-base font-semibold">{translate("romanceStyle", language)}</Label>
         <RadioGroup 
           value={profileData.personality.romanceStyle || ''} 
           onValueChange={(value) => handleSingleSelect('personality', 'romanceStyle', value)}
           className="mt-2"
         >
-          {['Romantic', 'Realist', 'Balanced'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'romantic', label: translate("romantic", language) },
+            { key: 'realist', label: translate("realist", language) },
+            { key: 'balanced', label: translate("balanced", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Daily Schedule</Label>
+        <Label className="text-base font-semibold">{translate("dailySchedule", language)}</Label>
         <RadioGroup 
           value={profileData.personality.schedule || ''} 
           onValueChange={(value) => handleSingleSelect('personality', 'schedule', value)}
           className="mt-2"
         >
-          {['Morning Person', 'Night Owl', 'Flexible'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'morningPerson', label: translate("morningPerson", language) },
+            { key: 'nightOwl', label: translate("nightOwl", language) },
+            { key: 'flexible', label: translate("flexible", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Humor Style</Label>
+        <Label className="text-base font-semibold">{translate("humorStyle", language)}</Label>
         <RadioGroup 
           value={profileData.personality.humor || ''} 
           onValueChange={(value) => handleSingleSelect('personality', 'humor', value)}
           className="mt-2"
         >
-          {['Dry', 'Sarcastic', 'Goofy', 'Witty', 'Dark'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'dry', label: translate("dry", language) },
+            { key: 'sarcastic', label: translate("sarcastic", language) },
+            { key: 'goofy', label: translate("goofy", language) },
+            { key: 'witty', label: translate("witty", language) },
+            { key: 'dark', label: translate("dark", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -178,85 +247,106 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
   const renderValuesStep = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-base font-semibold">Religion/Spirituality</Label>
+        <Label className="text-base font-semibold">{translate("religionSpirituality", language)}</Label>
         <Select value={profileData.values.religion || ''} onValueChange={(value) => handleSingleSelect('values', 'religion', value)}>
           <SelectTrigger className="mt-2">
-            <SelectValue placeholder="Select your beliefs" />
+            <SelectValue placeholder={translate("selectBeliefs", language)} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Christian">Christian</SelectItem>
-            <SelectItem value="Muslim">Muslim</SelectItem>
-            <SelectItem value="Jewish">Jewish</SelectItem>
-            <SelectItem value="Hindu">Hindu</SelectItem>
-            <SelectItem value="Buddhist">Buddhist</SelectItem>
-            <SelectItem value="Spiritual">Spiritual but not religious</SelectItem>
-            <SelectItem value="Agnostic">Agnostic</SelectItem>
-            <SelectItem value="Atheist">Atheist</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
-            <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+            <SelectItem value={translate("christian", language)}>{translate("christian", language)}</SelectItem>
+            <SelectItem value={translate("muslim", language)}>{translate("muslim", language)}</SelectItem>
+            <SelectItem value={translate("jewish", language)}>{translate("jewish", language)}</SelectItem>
+            <SelectItem value={translate("hindu", language)}>{translate("hindu", language)}</SelectItem>
+            <SelectItem value={translate("buddhist", language)}>{translate("buddhist", language)}</SelectItem>
+            <SelectItem value={translate("spiritual", language)}>{translate("spiritual", language)}</SelectItem>
+            <SelectItem value={translate("agnostic", language)}>{translate("agnostic", language)}</SelectItem>
+            <SelectItem value={translate("atheist", language)}>{translate("atheist", language)}</SelectItem>
+            <SelectItem value={translate("other", language)}>{translate("other", language)}</SelectItem>
+            <SelectItem value={translate("preferNotToSay", language)}>{translate("preferNotToSay", language)}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Family Values</Label>
+        <Label className="text-base font-semibold">{translate("familyValues", language)}</Label>
         <RadioGroup 
           value={profileData.values.family || ''} 
           onValueChange={(value) => handleSingleSelect('values', 'family', value)}
           className="mt-2"
         >
-          {['Very Important', 'Somewhat Important', 'Not Important'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'veryImportant', label: translate("veryImportant", language) },
+            { key: 'somewhatImportant', label: translate("somewhatImportant", language) },
+            { key: 'notImportant', label: translate("notImportant", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Want Children?</Label>
+        <Label className="text-base font-semibold">{translate("wantChildren", language)}</Label>
         <RadioGroup 
           value={profileData.values.children || ''} 
           onValueChange={(value) => handleSingleSelect('values', 'children', value)}
           className="mt-2"
         >
-          {['Definitely', 'Maybe someday', 'Not sure', 'No', 'Have kids'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'definitely', label: translate("definitely", language) },
+            { key: 'maybeSomeday', label: translate("maybeSomeday", language) },
+            { key: 'notSure', label: translate("notSure", language) },
+            { key: 'no', label: translate("no", language) },
+            { key: 'haveKids', label: translate("haveKids", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Views on Marriage</Label>
+        <Label className="text-base font-semibold">{translate("viewsOnMarriage", language)}</Label>
         <RadioGroup 
           value={profileData.values.marriage || ''} 
           onValueChange={(value) => handleSingleSelect('values', 'marriage', value)}
           className="mt-2"
         >
-          {['Want to get married', 'Maybe someday', 'Not important', 'Already married', 'Divorced'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'wantToGetMarried', label: translate("wantToGetMarried", language) },
+            { key: 'maybeSomeday', label: translate("maybeSomeday", language) },
+            { key: 'notImportant', label: translate("notImportant", language) },
+            { key: 'alreadyMarried', label: translate("alreadyMarried", language) },
+            { key: 'divorced', label: translate("divorced", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Relationship Style</Label>
+        <Label className="text-base font-semibold">{translate("relationshipStyle", language)}</Label>
         <RadioGroup 
           value={profileData.values.relationshipStyle || ''} 
           onValueChange={(value) => handleSingleSelect('values', 'relationshipStyle', value)}
           className="mt-2"
         >
-          {['Monogamous', 'Open relationship', 'Polyamorous', 'Still exploring'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'monogamous', label: translate("monogamous", language) },
+            { key: 'openRelationship', label: translate("openRelationship", language) },
+            { key: 'polyamorous', label: translate("polyamorous", language) },
+            { key: 'stillExploring', label: translate("stillExploring", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -267,96 +357,131 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
   const renderLifestyleStep = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-base font-semibold">Smoking</Label>
+        <Label className="text-base font-semibold">{translate("smoking", language)}</Label>
         <RadioGroup 
           value={profileData.lifestyle.smoking || ''} 
           onValueChange={(value) => handleSingleSelect('lifestyle', 'smoking', value)}
           className="mt-2"
         >
-          {['Never', 'Occasionally', 'Socially', 'Regularly'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'never', label: translate("never", language) },
+            { key: 'occasionally', label: translate("occasionally", language) },
+            { key: 'socially', label: translate("socially", language) },
+            { key: 'regularly', label: translate("regularly", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Drinking</Label>
+        <Label className="text-base font-semibold">{translate("drinking", language)}</Label>
         <RadioGroup 
           value={profileData.lifestyle.drinking || ''} 
           onValueChange={(value) => handleSingleSelect('lifestyle', 'drinking', value)}
           className="mt-2"
         >
-          {['Never', 'Occasionally', 'Socially', 'Regularly'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'never', label: translate("never", language) },
+            { key: 'occasionally', label: translate("occasionally", language) },
+            { key: 'socially', label: translate("socially", language) },
+            { key: 'regularly', label: translate("regularly", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Cannabis Use</Label>
+        <Label className="text-base font-semibold">{translate("cannabisUse", language)}</Label>
         <RadioGroup 
           value={profileData.lifestyle.cannabis || ''} 
           onValueChange={(value) => handleSingleSelect('lifestyle', 'cannabis', value)}
           className="mt-2"
         >
-          {['Never', 'Occasionally', 'Socially', 'Regularly', 'Medicinally'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'never', label: translate("never", language) },
+            { key: 'occasionally', label: translate("occasionally", language) },
+            { key: 'socially', label: translate("socially", language) },
+            { key: 'regularly', label: translate("regularly", language) },
+            { key: 'medicinally', label: translate("medicinally", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Diet</Label>
+        <Label className="text-base font-semibold">{translate("diet", language)}</Label>
         <RadioGroup 
           value={profileData.lifestyle.diet || ''} 
           onValueChange={(value) => handleSingleSelect('lifestyle', 'diet', value)}
           className="mt-2"
         >
-          {['Omnivore', 'Vegetarian', 'Vegan', 'Pescatarian', 'Keto', 'Paleo', 'Other'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'omnivore', label: translate("omnivore", language) },
+            { key: 'vegetarian', label: translate("vegetarian", language) },
+            { key: 'vegan', label: translate("vegan", language) },
+            { key: 'pescatarian', label: translate("pescatarian", language) },
+            { key: 'keto', label: translate("keto", language) },
+            { key: 'paleo', label: translate("paleo", language) },
+            { key: 'other', label: translate("other", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Exercise Frequency</Label>
+        <Label className="text-base font-semibold">{translate("exerciseFrequency", language)}</Label>
         <RadioGroup 
           value={profileData.lifestyle.exercise || ''} 
           onValueChange={(value) => handleSingleSelect('lifestyle', 'exercise', value)}
           className="mt-2"
         >
-          {['Daily', 'Few times a week', 'Weekly', 'Occasionally', 'Rarely'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'daily', label: translate("daily", language) },
+            { key: 'fewTimesWeek', label: translate("fewTimesWeek", language) },
+            { key: 'weekly', label: translate("weekly", language) },
+            { key: 'occasionally', label: translate("occasionally", language) },
+            { key: 'rarely', label: translate("rarely", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Pets</Label>
+        <Label className="text-base font-semibold">{translate("pets", language)}</Label>
         <RadioGroup 
           value={profileData.lifestyle.pets || ''} 
           onValueChange={(value) => handleSingleSelect('lifestyle', 'pets', value)}
           className="mt-2"
         >
-          {['Have pets', 'Want pets', 'Allergic to pets', 'Not a pet person'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'havePets', label: translate("havePets", language) },
+            { key: 'wantPets', label: translate("wantPets", language) },
+            { key: 'allergicToPets', label: translate("allergicToPets", language) },
+            { key: 'notPetPerson', label: translate("notPetPerson", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -367,10 +492,10 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
   const renderWorkStep = () => (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="occupation" className="text-base font-semibold">Occupation</Label>
+        <Label htmlFor="occupation" className="text-base font-semibold">{translate("occupation", language)}</Label>
         <Input 
           id="occupation"
-          placeholder="What do you do for work?"
+          placeholder={translate("whatDoYouDo", language)}
           value={profileData.work.occupation || ''}
           onChange={(e) => handleSingleSelect('work', 'occupation', e.target.value)}
           className="mt-2"
@@ -378,50 +503,63 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Education Level</Label>
+        <Label className="text-base font-semibold">{translate("educationLevel", language)}</Label>
         <Select value={profileData.work.education || ''} onValueChange={(value) => handleSingleSelect('work', 'education', value)}>
           <SelectTrigger className="mt-2">
-            <SelectValue placeholder="Select education level" />
+            <SelectValue placeholder={translate("selectEducation", language)} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="High School">High School</SelectItem>
-            <SelectItem value="Some College">Some College</SelectItem>
-            <SelectItem value="Bachelor's">Bachelor's Degree</SelectItem>
-            <SelectItem value="Master's">Master's Degree</SelectItem>
-            <SelectItem value="PhD">PhD</SelectItem>
-            <SelectItem value="Trade School">Trade School</SelectItem>
-            <SelectItem value="Other">Other</SelectItem>
+            <SelectItem value={translate("highSchool", language)}>{translate("highSchool", language)}</SelectItem>
+            <SelectItem value={translate("someCollege", language)}>{translate("someCollege", language)}</SelectItem>
+            <SelectItem value={translate("bachelors", language)}>{translate("bachelors", language)}</SelectItem>
+            <SelectItem value={translate("masters", language)}>{translate("masters", language)}</SelectItem>
+            <SelectItem value={translate("phd", language)}>{translate("phd", language)}</SelectItem>
+            <SelectItem value={translate("tradeSchool", language)}>{translate("tradeSchool", language)}</SelectItem>
+            <SelectItem value={translate("other", language)}>{translate("other", language)}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Work Schedule</Label>
+        <Label className="text-base font-semibold">{translate("workSchedule", language)}</Label>
         <RadioGroup 
           value={profileData.work.schedule || ''} 
           onValueChange={(value) => handleSingleSelect('work', 'schedule', value)}
           className="mt-2"
         >
-          {['9-5', 'Shift work', 'Freelancer', 'Student', 'Retired', 'Entrepreneur'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'nineToFive', label: translate("nineToFive", language) },
+            { key: 'shiftWork', label: translate("shiftWork", language) },
+            { key: 'freelancer', label: translate("freelancer", language) },
+            { key: 'student', label: translate("student", language) },
+            { key: 'retired', label: translate("retired", language) },
+            { key: 'entrepreneur', label: translate("entrepreneur", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Ambition Level</Label>
+        <Label className="text-base font-semibold">{translate("ambitionLevel", language)}</Label>
         <RadioGroup 
           value={profileData.work.ambition || ''} 
           onValueChange={(value) => handleSingleSelect('work', 'ambition', value)}
           className="mt-2"
         >
-          {['Very ambitious', 'Career-focused', 'Balanced', 'Chill', 'Work to live'].map(option => (
-            <div key={option} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={option} />
-              <Label htmlFor={option}>{option}</Label>
+          {[
+            { key: 'veryAmbitious', label: translate("veryAmbitious", language) },
+            { key: 'careerFocused', label: translate("careerFocused", language) },
+            { key: 'balanced', label: translate("balanced", language) },
+            { key: 'chill', label: translate("chill", language) },
+            { key: 'workToLive', label: translate("workToLive", language) }
+          ].map(option => (
+            <div key={option.key} className="flex items-center space-x-2">
+              <RadioGroupItem value={option.label} id={option.key} />
+              <Label htmlFor={option.key}>{option.label}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -432,9 +570,16 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
   const renderRelationshipStep = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-base font-semibold">Looking for</Label>
+        <Label className="text-base font-semibold">{translate("lookingFor", language)}</Label>
         <div className="mt-2 flex flex-wrap gap-2">
-          {['Serious Relationship', 'Casual Dating', 'Friends Only', 'Hookups', 'Marriage', 'Still Figuring It Out'].map(option => (
+          {[
+            translate("seriousRelationship", language),
+            translate("casualDating", language),
+            translate("friendsOnly", language),
+            translate("hookups", language),
+            translate("marriage", language),
+            translate("stillFiguringOut", language)
+          ].map(option => (
             <Badge
               key={option}
               variant={profileData.relationship.lookingFor?.includes(option) ? "default" : "outline"}
@@ -448,9 +593,18 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Dealbreakers</Label>
+        <Label className="text-base font-semibold">{translate("dealbreakers", language)}</Label>
         <div className="mt-2 flex flex-wrap gap-2">
-          {['Smoking', 'Children', 'Religion differences', 'Politics', 'Long-Distance', 'Pets', 'Large age gap', 'Open relationships'].map(option => (
+          {[
+            translate("smoking", language),
+            translate("haveKids", language),
+            translate("religionDifferences", language),
+            translate("politics", language),
+            translate("longDistance", language),
+            translate("pets", language),
+            translate("largeAgeGap", language),
+            translate("openRelationships", language)
+          ].map(option => (
             <Badge
               key={option}
               variant={profileData.relationship.dealbreakers?.includes(option) ? "destructive" : "outline"}
@@ -464,10 +618,10 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
       </div>
 
       <div>
-        <Label htmlFor="bio" className="text-base font-semibold">About You</Label>
+        <Label htmlFor="bio" className="text-base font-semibold">{translate("aboutYou", language)}</Label>
         <Textarea 
           id="bio"
-          placeholder="Tell potential matches about yourself..."
+          placeholder={translate("tellPotentialMatches", language)}
           value={profileData.relationship.bio || ''}
           onChange={(e) => handleSingleSelect('relationship', 'bio', e.target.value)}
           className="mt-2"
@@ -480,7 +634,7 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
   const renderInterestsStep = () => (
     <div className="space-y-6">
       <div>
-        <Label className="text-base font-semibold">Music Genres</Label>
+        <Label className="text-base font-semibold">{translate("musicGenres", language)}</Label>
         <div className="mt-2 flex flex-wrap gap-2">
           {['Hip-Hop', 'R&B', 'EDM', 'Jazz', 'Classical', 'Rock', 'Pop', 'Country', 'Indie', 'Alternative', 'Reggae', 'Latin'].map(option => (
             <Badge
@@ -496,7 +650,7 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Activities & Hobbies</Label>
+        <Label className="text-base font-semibold">{translate("activitiesHobbies", language)}</Label>
         <div className="mt-2 flex flex-wrap gap-2">
           {['Hiking', 'Gym', 'Yoga', 'Travel', 'Cooking', 'Gaming', 'Reading', 'Photography', 'Art', 'Dancing', 'Sports', 'Festivals', 'Coffee', 'Wine', 'Movies', 'TV Shows', 'Podcasts', 'Writing', 'Fashion', 'Tattoos'].map(option => (
             <Badge
@@ -512,7 +666,7 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
       </div>
 
       <div>
-        <Label className="text-base font-semibold">Turn-offs & Dealbreakers</Label>
+        <Label className="text-base font-semibold">{translate("turnOffsAndDealbreakers", language)}</Label>
         <div className="mt-2 flex flex-wrap gap-2">
           {['Bad Hygiene', 'Rudeness', 'Always Late', 'Lack of Ambition', 'Poor Communication', 'Judgmental', 'Clingy', 'Jealous', 'Social Media Obsessed', 'Constant Partying', 'Toxic Ex Talk'].map(option => (
             <Badge
@@ -542,15 +696,33 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete(profileData);
+      onComplete({ ...profileData, language });
     }
   };
 
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else if (currentStep === 0) {
+      setCurrentStep(-1);
     }
   };
+
+  // Language selection step
+  if (currentStep === -1) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center">{translate("selectLanguage", language)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {renderLanguageStep()}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -561,9 +733,12 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
               {steps[currentStep].icon}
               {steps[currentStep].title}
             </CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              ✕
-            </Button>
+            <div className="flex items-center gap-2">
+              <LanguageSelector selectedLanguage={language} onLanguageChange={setLanguage} />
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                ✕
+              </Button>
+            </div>
           </div>
           
           {/* Progress bar */}
@@ -574,7 +749,7 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
             />
           </div>
           <p className="text-sm text-gray-600">
-            Step {currentStep + 1} of {steps.length}
+            {translate("stepOf", language)} {currentStep + 1} {translate("of", language)} {steps.length}
           </p>
         </CardHeader>
 
@@ -585,14 +760,13 @@ export function ProfileSetup({ onClose, onComplete }: ProfileSetupProps) {
             <Button 
               variant="outline" 
               onClick={prevStep}
-              disabled={currentStep === 0}
             >
               <ChevronLeft className="w-4 h-4 mr-1" />
-              Previous
+              {translate("previous", language)}
             </Button>
             
             <Button onClick={nextStep}>
-              {currentStep === steps.length - 1 ? 'Complete Profile' : 'Next'}
+              {currentStep === steps.length - 1 ? translate("completeProfile", language) : translate("next", language)}
               {currentStep < steps.length - 1 && <ChevronRight className="w-4 h-4 ml-1" />}
             </Button>
           </div>
