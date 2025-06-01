@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from './AuthModal';
 import { Button } from '@/components/ui/button';
+import { Heart } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

@@ -1,18 +1,20 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchModal } from '@/components/MatchModal';
 import { TopBar } from '@/components/TopBar';
 import { BottomActions } from '@/components/BottomActions';
-import { DatingCoachBot } from '@/components/DatingCoachBot';
-import { ProfileOptimizer } from '@/components/ProfileOptimizer';
-import { SmartMatchRecommendations } from '@/components/SmartMatchRecommendations';
-import { ProfileSetup } from '@/components/ProfileSetup';
+import { ProUpgradeModal } from '@/components/ProUpgradeModal';
+import { BannerAd } from '@/components/BannerAd';
+import { SwipeCounter } from '@/components/SwipeCounter';
 import { FilterModal } from '@/components/FilterModal';
 import { LocationModal } from '@/components/LocationModal';
 import { Button } from '@/components/ui/button';
-import { Bot, Lightbulb, Brain, Settings, Filter, MapPin } from 'lucide-react';
+import { Filter, MapPin, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSwipeTracking } from '@/hooks/useSwipeTracking';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mock profile data
 const mockProfiles = [
@@ -67,13 +69,9 @@ export default function Dating() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [matchedProfile, setMatchedProfile] = useState(null);
   const [showMatch, setShowMatch] = useState(false);
-  const [showCoachBot, setShowCoachBot] = useState(false);
-  const [showProfileOptimizer, setShowProfileOptimizer] = useState(false);
-  const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
-  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [showProUpgrade, setShowProUpgrade] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
   const [currentLocation, setCurrentLocation] = useState('Cape Town');
   const [filters, setFilters] = useState({
     ageRange: [18, 35],
@@ -83,14 +81,43 @@ export default function Dating() {
     sexualPreference: '',
     interestedIn: ''
   });
+  
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { 
+    canSwipe, 
+    recordSwipe, 
+    remainingSwipes, 
+    isProUser, 
+    loading: swipeLoading 
+  } = useSwipeTracking();
 
-  const handleSwipe = (direction: 'left' | 'right') => {
+  const handleSwipe = async (direction: 'left' | 'right') => {
     if (currentIndex >= profiles.length) return;
 
+    if (!canSwipe) {
+      setShowProUpgrade(true);
+      return;
+    }
+
+    const swipeRecorded = await recordSwipe();
+    if (!swipeRecorded) {
+      setShowProUpgrade(true);
+      return;
+    }
+
+    // Record the swipe in the database
+    if (user) {
+      await supabase.from('matches').insert({
+        user_id: user.id,
+        target_user_id: profiles[currentIndex].id,
+        action: direction === 'right' ? 'like' : 'pass'
+      });
+    }
+
     if (direction === 'right') {
-      // Simulate match (50% chance for demo)
-      if (Math.random() > 0.5) {
+      // Simulate match (30% chance for demo)
+      if (Math.random() > 0.7) {
         setMatchedProfile(profiles[currentIndex]);
         setShowMatch(true);
       }
@@ -99,24 +126,40 @@ export default function Dating() {
     setCurrentIndex(prev => prev + 1);
   };
 
+  const handleProUpgrade = async () => {
+    // In a real app, this would integrate with payment processing
+    if (user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ is_pro: true })
+          .eq('id', user.id);
+        
+        toast({
+          title: "Welcome to Pro!",
+          description: "You now have unlimited swipes and premium features.",
+        });
+        
+        setShowProUpgrade(false);
+        window.location.reload(); // Refresh to update Pro status
+      } catch (error) {
+        toast({
+          title: "Upgrade Failed",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
   const closeMatchModal = () => {
     setShowMatch(false);
     setMatchedProfile(null);
   };
 
-  const handleProfileComplete = (profileData: any) => {
-    console.log('Profile completed:', profileData);
-    setUserProfile(profileData);
-    setShowProfileSetup(false);
-    toast({
-      title: "Profile Created!",
-      description: "Your profile has been set up successfully.",
-    });
-  };
-
   const handleApplyFilters = (newFilters: any) => {
     setFilters(newFilters);
-    setCurrentIndex(0); // Reset to first profile
+    setCurrentIndex(0);
     toast({
       title: "Filters Applied",
       description: "Your match preferences have been updated.",
@@ -125,7 +168,7 @@ export default function Dating() {
 
   const handleLocationChange = (newLocation: string) => {
     setCurrentLocation(newLocation);
-    setCurrentIndex(0); // Reset to first profile
+    setCurrentIndex(0);
     toast({
       title: "Location Changed",
       description: `Now showing matches in ${newLocation}`,
@@ -134,12 +177,23 @@ export default function Dating() {
 
   const currentProfile = profiles[currentIndex];
 
+  if (swipeLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-passion-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
       <TopBar />
       
-      {/* Location and Filter Bar */}
-      <div className="flex justify-between items-center px-4 py-2 bg-white/80 backdrop-blur-sm border-b">
+      {/* Show banner ad for free users */}
+      {!isProUser && <BannerAd position="top" />}
+      
+      {/* Simplified header with location, swipe counter, and minimal controls */}
+      <div className="flex justify-between items-center px-4 py-3 bg-white/80 backdrop-blur-sm border-b">
         <Button
           variant="outline"
           size="sm"
@@ -150,61 +204,24 @@ export default function Dating() {
           {currentLocation}
         </Button>
         
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowFilterModal(true)}
-          className="flex items-center gap-2"
-        >
-          <Filter className="w-4 h-4" />
-          Filters
-        </Button>
+        <SwipeCounter 
+          remainingSwipes={remainingSwipes}
+          isProUser={isProUser}
+          onUpgradeClick={() => setShowProUpgrade(true)}
+        />
+        
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFilterModal(true)}
+          >
+            <Filter className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
       
-      {/* AI Features Panel */}
-      <div className="fixed top-32 right-4 z-40 space-y-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/90 backdrop-blur-sm"
-          onClick={() => setShowProfileSetup(true)}
-        >
-          <Settings className="w-4 h-4 mr-1" />
-          Setup Profile
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/90 backdrop-blur-sm"
-          onClick={() => setShowCoachBot(true)}
-        >
-          <Bot className="w-4 h-4 mr-1" />
-          AI Coach
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/90 backdrop-blur-sm"
-          onClick={() => setShowProfileOptimizer(true)}
-        >
-          <Lightbulb className="w-4 h-4 mr-1" />
-          Optimize
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/90 backdrop-blur-sm"
-          onClick={() => setShowSmartRecommendations(true)}
-        >
-          <Brain className="w-4 h-4 mr-1" />
-          Smart Matches
-        </Button>
-      </div>
-      
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-180px)] px-4 py-8">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-4 py-4">
         {currentProfile ? (
           <ProfileCard 
             profile={currentProfile}
@@ -227,8 +244,11 @@ export default function Dating() {
       <BottomActions 
         onLike={() => handleSwipe('right')}
         onPass={() => handleSwipe('left')}
-        disabled={!currentProfile}
+        disabled={!currentProfile || !canSwipe}
       />
+
+      {/* Show banner ad for free users */}
+      {!isProUser && <BannerAd position="bottom" />}
 
       {showMatch && matchedProfile && (
         <MatchModal 
@@ -237,22 +257,11 @@ export default function Dating() {
         />
       )}
 
-      {showCoachBot && (
-        <DatingCoachBot onClose={() => setShowCoachBot(false)} />
-      )}
-
-      {showProfileOptimizer && (
-        <ProfileOptimizer onClose={() => setShowProfileOptimizer(false)} />
-      )}
-
-      {showSmartRecommendations && (
-        <SmartMatchRecommendations onClose={() => setShowSmartRecommendations(false)} />
-      )}
-
-      {showProfileSetup && (
-        <ProfileSetup 
-          onClose={() => setShowProfileSetup(false)}
-          onComplete={handleProfileComplete}
+      {showProUpgrade && (
+        <ProUpgradeModal
+          onClose={() => setShowProUpgrade(false)}
+          onUpgrade={handleProUpgrade}
+          remainingSwipes={remainingSwipes}
         />
       )}
 
