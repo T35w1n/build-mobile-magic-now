@@ -8,8 +8,9 @@ import { BannerAd } from '@/components/BannerAd';
 import { SwipeCounter } from '@/components/SwipeCounter';
 import { FilterModal } from '@/components/FilterModal';
 import { LocationModal } from '@/components/LocationModal';
+import { UserGuideModal } from '@/components/UserGuideModal';
 import { Button } from '@/components/ui/button';
-import { Filter, MapPin, Settings } from 'lucide-react';
+import { Filter, MapPin, HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSwipeTracking } from '@/hooks/useSwipeTracking';
 import { useAuth } from '@/hooks/useAuth';
@@ -71,6 +72,7 @@ export default function Dating() {
   const [showProUpgrade, setShowProUpgrade] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showUserGuide, setShowUserGuide] = useState(false);
   const [currentLocation, setCurrentLocation] = useState('Cape Town');
   const [filters, setFilters] = useState({
     ageRange: [18, 35],
@@ -191,7 +193,7 @@ export default function Dating() {
       {/* Show banner ad for free users */}
       {!isProUser && <BannerAd position="top" />}
       
-      {/* Simplified header with location, swipe counter, and minimal controls */}
+      {/* Header with location, swipe counter, and controls */}
       <div className="flex justify-between items-center px-4 py-3 bg-white/80 backdrop-blur-sm border-b">
         <Button
           variant="outline"
@@ -216,6 +218,14 @@ export default function Dating() {
             onClick={() => setShowFilterModal(true)}
           >
             <Filter className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowUserGuide(true)}
+            title="Show User Guide"
+          >
+            <HelpCircle className="w-4 h-4" />
           </Button>
         </div>
       </div>
@@ -249,6 +259,7 @@ export default function Dating() {
       {/* Show banner ad for free users */}
       {!isProUser && <BannerAd position="bottom" />}
 
+      {/* Modals */}
       {showMatch && matchedProfile && (
         <MatchModal 
           profile={matchedProfile}
@@ -277,6 +288,12 @@ export default function Dating() {
           onClose={() => setShowLocationModal(false)}
           onLocationChange={handleLocationChange}
           currentLocation={currentLocation}
+        />
+      )}
+
+      {showUserGuide && (
+        <UserGuideModal
+          onClose={() => setShowUserGuide(false)}
         />
       )}
     </div>
