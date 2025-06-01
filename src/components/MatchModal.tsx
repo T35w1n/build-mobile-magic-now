@@ -20,15 +20,15 @@ interface MatchModalProps {
 
 export function MatchModal({ profile, onClose }: MatchModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-md bg-white text-center p-8 animate-scale-in">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md bg-white text-center p-8 animate-scale-in rounded-2xl shadow-2xl border-2 border-passion-200">
         <div className="mb-6">
           <div className="flex justify-center mb-4">
-            <Heart className="w-16 h-16 text-red-500 animate-pulse" />
+            <Heart className="w-20 h-20 text-passion-500 animate-heartbeat drop-shadow-lg" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">It's a Match!</h2>
-          <p className="text-gray-600">
-            You and {profile.name} liked each other
+          <h2 className="text-4xl font-bold font-dancing text-gradient mb-3">It's a Match!</h2>
+          <p className="text-passion-700 font-medium">
+            You and <span className="font-semibold text-passion-800">{profile.name}</span> liked each other
           </p>
         </div>
         
@@ -37,14 +37,17 @@ export function MatchModal({ profile, onClose }: MatchModalProps) {
             <img
               src={profile.images[0]}
               alt={profile.name}
-              className="w-20 h-20 rounded-full object-cover border-4 border-red-200"
+              className="w-24 h-24 rounded-full object-cover border-4 border-passion-300 shadow-lg"
             />
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-passion-500 rounded-full flex items-center justify-center">
+              <Heart className="w-4 h-4 text-white" />
+            </div>
           </div>
         </div>
         
         <div className="space-y-3">
           <Button 
-            className="w-full bg-red-500 hover:bg-red-600 text-white"
+            className="w-full gradient-desire hover:shadow-lg hover:shadow-passion-300/50 text-white font-semibold py-3 rounded-xl transform hover:scale-105 transition-all duration-200"
             onClick={onClose}
           >
             <MessageCircle className="w-5 h-5 mr-2" />
@@ -53,10 +56,10 @@ export function MatchModal({ profile, onClose }: MatchModalProps) {
           
           <Button 
             variant="outline" 
-            className="w-full"
+            className="w-full border-2 border-passion-300 text-passion-700 hover:bg-passion-50 font-medium py-3 rounded-xl transition-all duration-200"
             onClick={onClose}
           >
-            Keep Swiping
+            Keep Exploring
           </Button>
         </div>
       </Card>
