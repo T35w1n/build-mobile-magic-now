@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchModal } from '@/components/MatchModal';
@@ -110,7 +109,7 @@ export default function Dating() {
     if (user) {
       await supabase.from('matches').insert({
         user_id: user.id,
-        target_user_id: profiles[currentIndex].id,
+        target_user_id: profiles[currentIndex].id.toString(),
         action: direction === 'right' ? 'like' : 'pass'
       });
     }

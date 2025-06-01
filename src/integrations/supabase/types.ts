@@ -126,6 +126,7 @@ export type Database = {
           id: string
           interested_in: string | null
           interests: Json | null
+          is_pro: boolean | null
           job_title: string | null
           languages: string[] | null
           lifestyle_habits: Json | null
@@ -150,6 +151,7 @@ export type Database = {
           id: string
           interested_in?: string | null
           interests?: Json | null
+          is_pro?: boolean | null
           job_title?: string | null
           languages?: string[] | null
           lifestyle_habits?: Json | null
@@ -174,6 +176,7 @@ export type Database = {
           id?: string
           interested_in?: string | null
           interests?: Json | null
+          is_pro?: boolean | null
           job_title?: string | null
           languages?: string[] | null
           lifestyle_habits?: Json | null
