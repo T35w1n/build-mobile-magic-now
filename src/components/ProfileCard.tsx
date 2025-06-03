@@ -1,28 +1,36 @@
 
 import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
-import { MapPin, Heart, X } from 'lucide-react';
+import { MapPin, Heart, X, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface Profile {
-  id: number;
-  name: string;
-  age: number;
-  bio: string;
-  images: string[];
-  distance: number;
+  id: string;
+  full_name?: string;
+  age?: number;
+  bio?: string;
+  photos?: string[];
+  location?: string;
+  verified?: boolean;
 }
 
 interface ProfileCardProps {
   profile: Profile;
   onSwipe: (direction: 'left' | 'right') => void;
+  onReport?: () => void;
 }
 
-export function ProfileCard({ profile, onSwipe }: ProfileCardProps) {
+export function ProfileCard({ profile, onSwipe, onReport }: ProfileCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Default images if no photos available
+  const images = profile.photos && profile.photos.length > 0 
+    ? profile.photos 
+    : ['/placeholder.svg'];
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -102,15 +110,15 @@ export function ProfileCard({ profile, onSwipe }: ProfileCardProps) {
         {/* Image */}
         <div className="relative h-2/3 overflow-hidden">
           <img
-            src={profile.images[currentImageIndex]}
-            alt={profile.name}
+            src={images[currentImageIndex]}
+            alt={profile.full_name || 'Profile'}
             className="w-full h-full object-cover"
           />
           
           {/* Image indicators */}
-          {profile.images.length > 1 && (
+          {images.length > 1 && (
             <div className="absolute top-4 left-4 right-4 flex space-x-1">
-              {profile.images.map((_, index) => (
+              {images.map((_, index) => (
                 <div
                   key={index}
                   className={`flex-1 h-1 rounded-full ${
@@ -119,6 +127,21 @@ export function ProfileCard({ profile, onSwipe }: ProfileCardProps) {
                 />
               ))}
             </div>
+          )}
+
+          {/* Report button */}
+          {onReport && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onReport();
+              }}
+              className="absolute top-4 right-4 bg-white/80 hover:bg-white"
+            >
+              <AlertTriangle className="w-4 h-4" />
+            </Button>
           )}
 
           {/* Swipe indicators */}
@@ -144,15 +167,17 @@ export function ProfileCard({ profile, onSwipe }: ProfileCardProps) {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-2xl font-bold text-gray-900">
-                {profile.name}, {profile.age}
+                {profile.full_name || 'Unknown'}{profile.age ? `, ${profile.age}` : ''}
               </h2>
-              <div className="flex items-center text-gray-500 text-sm">
-                <MapPin className="w-4 h-4 mr-1" />
-                {profile.distance} km away
-              </div>
+              {profile.location && (
+                <div className="flex items-center text-gray-500 text-sm">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {profile.location}
+                </div>
+              )}
             </div>
             <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
-              {profile.bio}
+              {profile.bio || 'No bio available'}
             </p>
           </div>
         </div>
