@@ -41,7 +41,12 @@ export function useSecureMatches() {
       if (error) {
         console.error('Error fetching matches:', error);
       } else {
-        setMatches(data || []);
+        // Type assertion to ensure proper typing
+        const typedMatches = (data || []).map(match => ({
+          ...match,
+          action: match.action as 'like' | 'pass' | 'super_like'
+        }));
+        setMatches(typedMatches);
       }
     } catch (error) {
       console.error('Error fetching matches:', error);

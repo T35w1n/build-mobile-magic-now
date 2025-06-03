@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSecureMatches } from '@/hooks/useSecureMatches';
 import { useDiscovery } from '@/hooks/useDiscovery';
 import { useSecurity } from '@/components/SecurityProvider';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Dating() {
   const [currentIndex, setCurrentIndex] = useState(0);
