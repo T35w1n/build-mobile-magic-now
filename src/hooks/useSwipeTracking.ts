@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { RateLimiter } from '@/utils/security';
 
 export function useSwipeTracking() {
   const [dailySwipes, setDailySwipes] = useState(0);
@@ -30,14 +31,17 @@ export function useSwipeTracking() {
 
       setIsProUser(profile?.is_pro || false);
 
-      // Get today's swipes count
-      const today = new Date().toISOString().split('T')[0];
+      // Get today's swipes count with better date handling
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
       const { data: swipes } = await supabase
         .from('matches')
         .select('id')
         .eq('user_id', user.id)
-        .gte('created_at', `${today}T00:00:00.000Z`)
-        .lt('created_at', `${today}T23:59:59.999Z`);
+        .gte('created_at', startOfDay.toISOString())
+        .lt('created_at', endOfDay.toISOString());
 
       setDailySwipes(swipes?.length || 0);
     } catch (error) {
@@ -48,6 +52,13 @@ export function useSwipeTracking() {
   };
 
   const canSwipe = () => {
+    if (!user) return false;
+    
+    // Rate limiting check
+    if (!RateLimiter.isAllowed(`swipe_${user.id}`, 50, 60000)) {
+      return false;
+    }
+    
     return isProUser || dailySwipes < FREE_SWIPE_LIMIT;
   };
 

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchModal } from '@/components/MatchModal';
@@ -9,63 +10,18 @@ import { SwipeCounter } from '@/components/SwipeCounter';
 import { FilterModal } from '@/components/FilterModal';
 import { LocationModal } from '@/components/LocationModal';
 import { UserGuideModal } from '@/components/UserGuideModal';
+import { ReportModal } from '@/components/ReportModal';
+import { SafetyModal } from '@/components/SafetyModal';
 import { Button } from '@/components/ui/button';
-import { Filter, MapPin, HelpCircle } from 'lucide-react';
+import { Filter, MapPin, HelpCircle, Shield, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSwipeTracking } from '@/hooks/useSwipeTracking';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-
-// Mock profile data
-const mockProfiles = [
-  {
-    id: 1,
-    name: "Emma",
-    age: 28,
-    bio: "Love hiking, coffee, and good conversations. Adventure seeker looking for someone to explore the world with! 🌍",
-    images: ["https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop"],
-    distance: 2,
-    languages: ["English", "Afrikaans"],
-    race: "White",
-    sexualPreference: "straight"
-  },
-  {
-    id: 2,
-    name: "Alex",
-    age: 32,
-    bio: "Photographer by day, chef by night. Looking for someone who appreciates good food and great stories. 📸🍝",
-    images: ["https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop"],
-    distance: 5,
-    languages: ["English"],
-    race: "Mixed Race",
-    sexualPreference: "bisexual"
-  },
-  {
-    id: 3,
-    name: "Sophie",
-    age: 26,
-    bio: "Yoga instructor and dog lover. Seeking genuine connections and someone who loves the outdoors as much as I do! 🧘‍♀️🐕",
-    images: ["https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop"],
-    distance: 3,
-    languages: ["English", "French"],
-    race: "African",
-    sexualPreference: "straight"
-  },
-  {
-    id: 4,
-    name: "Marcus",
-    age: 29,
-    bio: "Software engineer with a passion for music and travel. Let's grab coffee and see where the conversation takes us! ☕✈️",
-    images: ["https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop"],
-    distance: 7,
-    languages: ["English", "Zulu"],
-    race: "African",
-    sexualPreference: "straight"
-  }
-];
+import { useSecureMatches } from '@/hooks/useSecureMatches';
+import { useDiscovery } from '@/hooks/useDiscovery';
+import { useSecurity } from '@/components/SecurityProvider';
 
 export default function Dating() {
-  const [profiles, setProfiles] = useState(mockProfiles);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [matchedProfile, setMatchedProfile] = useState(null);
   const [showMatch, setShowMatch] = useState(false);
@@ -73,6 +29,9 @@ export default function Dating() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showUserGuide, setShowUserGuide] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
+  const [reportingProfile, setReportingProfile] = useState(null);
   const [currentLocation, setCurrentLocation] = useState('Cape Town');
   const [filters, setFilters] = useState({
     ageRange: [18, 35],
@@ -85,6 +44,9 @@ export default function Dating() {
   
   const { toast } = useToast();
   const { user } = useAuth();
+  const { profiles, loading: profilesLoading } = useDiscovery();
+  const { createMatch } = useSecureMatches();
+  const { reportUser } = useSecurity();
   const { 
     canSwipe, 
     recordSwipe, 
@@ -92,6 +54,15 @@ export default function Dating() {
     isProUser, 
     loading: swipeLoading 
   } = useSwipeTracking();
+
+  // Show safety modal on first visit
+  useEffect(() => {
+    const hasSeenSafety = localStorage.getItem('koppel-safety-shown');
+    if (!hasSeenSafety && user) {
+      setShowSafetyModal(true);
+      localStorage.setItem('koppel-safety-shown', 'true');
+    }
+  }, [user]);
 
   const handleSwipe = async (direction: 'left' | 'right') => {
     if (currentIndex >= profiles.length) return;
@@ -107,19 +78,28 @@ export default function Dating() {
       return;
     }
 
-    // Record the swipe in the database
-    if (user) {
-      await supabase.from('matches').insert({
-        user_id: user.id,
-        target_user_id: profiles[currentIndex].id.toString(),
-        action: direction === 'right' ? 'like' : 'pass'
+    const currentProfile = profiles[currentIndex];
+    if (!currentProfile) return;
+
+    // Use secure match creation
+    const result = await createMatch(
+      currentProfile.id,
+      direction === 'right' ? 'like' : 'pass'
+    );
+
+    if (result.error) {
+      toast({
+        title: "Error",
+        description: result.error,
+        variant: "destructive"
       });
+      return;
     }
 
     if (direction === 'right') {
       // Simulate match (30% chance for demo)
       if (Math.random() > 0.7) {
-        setMatchedProfile(profiles[currentIndex]);
+        setMatchedProfile(currentProfile);
         setShowMatch(true);
       }
     }
@@ -127,14 +107,35 @@ export default function Dating() {
     setCurrentIndex(prev => prev + 1);
   };
 
+  const handleReport = (profile: any) => {
+    setReportingProfile(profile);
+    setShowReportModal(true);
+  };
+
+  const handleReportSubmit = async (reason: string, details: string) => {
+    if (!reportingProfile) return;
+    
+    await reportUser(reportingProfile.id, reason);
+    setShowReportModal(false);
+    setReportingProfile(null);
+    
+    toast({
+      title: "Report Submitted",
+      description: "Thank you for keeping our community safe.",
+    });
+  };
+
   const handleProUpgrade = async () => {
-    // In a real app, this would integrate with payment processing
     if (user) {
       try {
-        await supabase
+        const { data, error } = await supabase
           .from('profiles')
           .update({ is_pro: true })
-          .eq('id', user.id);
+          .eq('id', user.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
         
         toast({
           title: "Welcome to Pro!",
@@ -142,7 +143,7 @@ export default function Dating() {
         });
         
         setShowProUpgrade(false);
-        window.location.reload(); // Refresh to update Pro status
+        window.location.reload();
       } catch (error) {
         toast({
           title: "Upgrade Failed",
@@ -178,7 +179,7 @@ export default function Dating() {
 
   const currentProfile = profiles[currentIndex];
 
-  if (swipeLoading) {
+  if (swipeLoading || profilesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-passion-500"></div>
@@ -215,6 +216,14 @@ export default function Dating() {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => setShowSafetyModal(true)}
+            title="Safety Guidelines"
+          >
+            <Shield className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setShowFilterModal(true)}
           >
             <Filter className="w-4 h-4" />
@@ -235,6 +244,7 @@ export default function Dating() {
           <ProfileCard 
             profile={currentProfile}
             onSwipe={handleSwipe}
+            onReport={() => handleReport(currentProfile)}
           />
         ) : (
           <div className="text-center py-20">
@@ -294,6 +304,22 @@ export default function Dating() {
       {showUserGuide && (
         <UserGuideModal
           onClose={() => setShowUserGuide(false)}
+        />
+      )}
+
+      {showSafetyModal && (
+        <SafetyModal
+          isOpen={showSafetyModal}
+          onClose={() => setShowSafetyModal(false)}
+        />
+      )}
+
+      {showReportModal && reportingProfile && (
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          reportedUserId={reportingProfile.id}
+          reportedUserName={reportingProfile.full_name || 'User'}
         />
       )}
     </div>
