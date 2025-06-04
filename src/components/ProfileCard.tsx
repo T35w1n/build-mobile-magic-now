@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Card } from '@/components/ui/card';
-import { MapPin, Heart, X, AlertTriangle } from 'lucide-react';
+import { MapPin, Heart, X, AlertTriangle, Star, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Profile {
@@ -18,9 +18,21 @@ interface ProfileCardProps {
   profile: Profile;
   onSwipe: (direction: 'left' | 'right') => void;
   onReport?: () => void;
+  onSuperLike?: () => void;
+  onBoost?: () => void;
+  canSuperLike?: boolean;
+  canBoost?: boolean;
 }
 
-export function ProfileCard({ profile, onSwipe, onReport }: ProfileCardProps) {
+export function ProfileCard({ 
+  profile, 
+  onSwipe, 
+  onReport, 
+  onSuperLike, 
+  onBoost, 
+  canSuperLike = false, 
+  canBoost = false 
+}: ProfileCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -129,20 +141,50 @@ export function ProfileCard({ profile, onSwipe, onReport }: ProfileCardProps) {
             </div>
           )}
 
-          {/* Report button */}
-          {onReport && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                onReport();
-              }}
-              className="absolute top-4 right-4 bg-white/80 hover:bg-white"
-            >
-              <AlertTriangle className="w-4 h-4" />
-            </Button>
-          )}
+          {/* Action buttons */}
+          <div className="absolute top-4 right-4 flex gap-2">
+            {onReport && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReport();
+                }}
+                className="bg-white/80 hover:bg-white"
+              >
+                <AlertTriangle className="w-4 h-4" />
+              </Button>
+            )}
+            
+            {onBoost && canBoost && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onBoost();
+                }}
+                className="bg-white/80 hover:bg-white"
+              >
+                <Zap className="w-4 h-4 text-purple-500" />
+              </Button>
+            )}
+            
+            {onSuperLike && canSuperLike && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSuperLike();
+                }}
+                className="bg-white/80 hover:bg-white"
+              >
+                <Star className="w-4 h-4 text-blue-500" />
+              </Button>
+            )}
+          </div>
 
           {/* Swipe indicators */}
           {dragOffset.x > 50 && (
