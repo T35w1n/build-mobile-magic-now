@@ -23,23 +23,40 @@ export function useDiscovery() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  console.log('useDiscovery: Hook initialized', { user: !!user, loading });
+
   useEffect(() => {
+    console.log('useDiscovery: useEffect triggered', { user: !!user });
     if (user) {
       fetchProfiles();
+    } else {
+      console.log('useDiscovery: No user, setting loading to false');
+      setLoading(false);
     }
   }, [user]);
 
   const fetchProfiles = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('useDiscovery: fetchProfiles called but no user');
+      return;
+    }
+
+    console.log('useDiscovery: Starting to fetch profiles');
+    setLoading(true);
 
     try {
       // Get profiles excluding current user and users already matched
-      const { data: matchedUserIds } = await supabase
+      const { data: matchedUserIds, error: matchError } = await supabase
         .from('matches')
         .select('target_user_id')
         .eq('user_id', user.id);
 
+      if (matchError) {
+        console.error('useDiscovery: Error fetching matched users:', matchError);
+      }
+
       const excludedIds = [user.id, ...(matchedUserIds?.map(m => m.target_user_id) || [])];
+      console.log('useDiscovery: Excluded IDs:', excludedIds);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -51,23 +68,29 @@ export function useDiscovery() {
         .limit(20); // Limit for performance
 
       if (error) {
-        console.error('Error fetching profiles:', error);
+        console.error('useDiscovery: Error fetching profiles:', error);
       } else {
+        console.log('useDiscovery: Raw profiles data:', data);
+        
         // Filter out profiles with suspicious data
         const validProfiles = (data || []).filter(profile => {
-          return (
+          const isValid = (
             profile.full_name && 
             profile.full_name.length >= 2 && 
             profile.full_name.length <= 50 &&
             (!profile.bio || profile.bio.length <= 500)
           );
+          console.log('useDiscovery: Profile validation', { id: profile.id, valid: isValid });
+          return isValid;
         });
         
+        console.log('useDiscovery: Valid profiles:', validProfiles.length);
         setProfiles(validProfiles);
       }
     } catch (error) {
-      console.error('Error fetching profiles:', error);
+      console.error('useDiscovery: Exception in fetchProfiles:', error);
     } finally {
+      console.log('useDiscovery: Setting loading to false');
       setLoading(false);
     }
   };

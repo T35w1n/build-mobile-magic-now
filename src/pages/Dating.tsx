@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchModal } from '@/components/MatchModal';
@@ -55,6 +54,14 @@ export default function Dating() {
     isProUser, 
     loading: swipeLoading 
   } = useSwipeTracking();
+
+  console.log('Dating component state:', {
+    user: !!user,
+    profilesLoading,
+    swipeLoading,
+    profilesCount: profiles?.length || 0,
+    currentIndex
+  });
 
   // Show safety modal on first visit
   useEffect(() => {
@@ -181,12 +188,21 @@ export default function Dating() {
   const currentProfile = profiles[currentIndex];
 
   if (swipeLoading || profilesLoading) {
+    console.log('Dating component showing loading screen, swipeLoading:', swipeLoading, 'profilesLoading:', profilesLoading);
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-passion-500"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-passion-500 mx-auto"></div>
+          <p className="mt-4 text-passion-700 font-medium">Loading your romantic journey...</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Swipe loading: {swipeLoading ? 'Yes' : 'No'}, Profiles loading: {profilesLoading ? 'Yes' : 'No'}
+          </p>
+        </div>
       </div>
     );
   }
+
+  console.log('Dating component rendering main interface');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
