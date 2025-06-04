@@ -1,9 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { ProfileCard } from '@/components/ProfileCard';
 import { MatchModal } from '@/components/MatchModal';
 import { TopBar } from '@/components/TopBar';
 import { BottomActions } from '@/components/BottomActions';
 import { ProUpgradeModal } from '@/components/ProUpgradeModal';
+import { SuperLikeModal } from '@/components/SuperLikeModal';
+import { BoostModal } from '@/components/BoostModal';
+import { VideoCallModal } from '@/components/VideoCallModal';
+import { ReadReceiptModal } from '@/components/ReadReceiptModal';
+import { IncognitoModeModal } from '@/components/IncognitoModeModal';
+import { PremiumFeatures } from '@/components/PremiumFeatures';
+import { ProfileOptimizer } from '@/components/ProfileOptimizer';
+import { DatingCoachBot } from '@/components/DatingCoachBot';
+import { SmartMatchRecommendations } from '@/components/SmartMatchRecommendations';
 import { BannerAd } from '@/components/BannerAd';
 import { SwipeCounter } from '@/components/SwipeCounter';
 import { FilterModal } from '@/components/FilterModal';
@@ -12,9 +22,10 @@ import { UserGuideModal } from '@/components/UserGuideModal';
 import { ReportModal } from '@/components/ReportModal';
 import { SafetyModal } from '@/components/SafetyModal';
 import { Button } from '@/components/ui/button';
-import { Filter, MapPin, HelpCircle, Shield, AlertTriangle } from 'lucide-react';
+import { Filter, MapPin, HelpCircle, Shield, Star, Zap, Crown, Video, Brain, Lightbulb, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useSwipeTracking } from '@/hooks/useSwipeTracking';
+import { usePremiumFeatures } from '@/hooks/usePremiumFeatures';
 import { useAuth } from '@/hooks/useAuth';
 import { useSecureMatches } from '@/hooks/useSecureMatches';
 import { useDiscovery } from '@/hooks/useDiscovery';
@@ -26,6 +37,15 @@ export default function Dating() {
   const [matchedProfile, setMatchedProfile] = useState(null);
   const [showMatch, setShowMatch] = useState(false);
   const [showProUpgrade, setShowProUpgrade] = useState(false);
+  const [showSuperLike, setShowSuperLike] = useState(false);
+  const [showBoost, setShowBoost] = useState(false);
+  const [showVideoCall, setShowVideoCall] = useState(false);
+  const [showReadReceipts, setShowReadReceipts] = useState(false);
+  const [showIncognito, setShowIncognito] = useState(false);
+  const [showPremiumFeatures, setShowPremiumFeatures] = useState(false);
+  const [showProfileOptimizer, setShowProfileOptimizer] = useState(false);
+  const [showDatingCoach, setShowDatingCoach] = useState(false);
+  const [showSmartRecommendations, setShowSmartRecommendations] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showUserGuide, setShowUserGuide] = useState(false);
@@ -54,6 +74,18 @@ export default function Dating() {
     isProUser, 
     loading: swipeLoading 
   } = useSwipeTracking();
+
+  const {
+    superLikesRemaining,
+    boostsRemaining,
+    isIncognito,
+    hasVideoCall,
+    hasReadReceipts,
+    useSuperLike,
+    useBoost,
+    toggleIncognito,
+    canUseFeature
+  } = usePremiumFeatures();
 
   console.log('Dating component state:', {
     user: !!user,
@@ -115,6 +147,44 @@ export default function Dating() {
     setCurrentIndex(prev => prev + 1);
   };
 
+  const handleSuperLike = async () => {
+    const currentProfile = profiles[currentIndex];
+    if (!currentProfile) return;
+
+    const success = await useSuperLike();
+    if (success) {
+      const result = await createMatch(currentProfile.id, 'super_like');
+      if (!result.error) {
+        // Higher chance of match with super like
+        if (Math.random() > 0.4) {
+          setMatchedProfile(currentProfile);
+          setShowMatch(true);
+        }
+        setCurrentIndex(prev => prev + 1);
+        toast({
+          title: "Super Like Sent! ⭐",
+          description: "You'll appear at the top of their stack with a blue star.",
+        });
+      }
+    } else {
+      setShowProUpgrade(true);
+    }
+    setShowSuperLike(false);
+  };
+
+  const handleBoost = async (duration: number) => {
+    const success = await useBoost(duration);
+    if (success) {
+      toast({
+        title: "Profile Boosted! 🚀",
+        description: `Your profile will be shown to more people for ${duration} minutes.`,
+      });
+    } else {
+      setShowProUpgrade(true);
+    }
+    setShowBoost(false);
+  };
+
   const handleReport = (profile: any) => {
     setReportingProfile(profile);
     setShowReportModal(true);
@@ -151,6 +221,7 @@ export default function Dating() {
         });
         
         setShowProUpgrade(false);
+        setShowPremiumFeatures(false);
         window.location.reload();
       } catch (error) {
         toast({
@@ -226,7 +297,7 @@ export default function Dating() {
         <SwipeCounter 
           remainingSwipes={remainingSwipes}
           isProUser={isProUser}
-          onUpgradeClick={() => setShowProUpgrade(true)}
+          onUpgradeClick={() => setShowPremiumFeatures(true)}
         />
         
         <div className="flex gap-2">
@@ -255,24 +326,102 @@ export default function Dating() {
           </Button>
         </div>
       </div>
+
+      {/* Premium features toolbar */}
+      <div className="flex justify-center gap-2 p-3 bg-white/60 backdrop-blur-sm border-b">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowSmartRecommendations(true)}
+          className="flex items-center gap-1"
+        >
+          <Brain className="w-4 h-4" />
+          AI Matches
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowProfileOptimizer(true)}
+          className="flex items-center gap-1"
+        >
+          <Lightbulb className="w-4 h-4" />
+          Optimize
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowDatingCoach(true)}
+          className="flex items-center gap-1"
+        >
+          <Brain className="w-4 h-4" />
+          Coach
+        </Button>
+
+        {isProUser && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowIncognito(true)}
+              className={`flex items-center gap-1 ${isIncognito ? 'bg-gray-100' : ''}`}
+            >
+              <EyeOff className="w-4 h-4" />
+              {isIncognito ? 'Incognito ON' : 'Incognito'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowVideoCall(true)}
+              className="flex items-center gap-1"
+            >
+              <Video className="w-4 h-4" />
+              Video
+            </Button>
+          </>
+        )}
+      </div>
       
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-4 py-4">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-280px)] px-4 py-4">
         {currentProfile ? (
           <ProfileCard 
             profile={currentProfile}
             onSwipe={handleSwipe}
             onReport={() => handleReport(currentProfile)}
+            onSuperLike={() => setShowSuperLike(true)}
+            onBoost={() => setShowBoost(true)}
+            canSuperLike={canUseFeature('super_like')}
+            canBoost={canUseFeature('boost')}
           />
         ) : (
           <div className="text-center py-20">
             <h2 className="text-2xl font-bold text-gray-600 mb-4">No more profiles!</h2>
-            <p className="text-gray-500">Check back later for more potential matches.</p>
-            <Button 
-              onClick={() => setCurrentIndex(0)} 
-              className="mt-4"
-            >
-              Reset Matches
-            </Button>
+            <p className="text-gray-500 mb-4">Check back later for more potential matches.</p>
+            <div className="space-y-2">
+              <Button 
+                onClick={() => setCurrentIndex(0)} 
+                className="mr-2"
+              >
+                Reset Matches
+              </Button>
+              <Button 
+                onClick={() => setShowBoost(true)}
+                variant="outline"
+                className="mr-2"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Boost Profile
+              </Button>
+              <Button 
+                onClick={() => setShowPremiumFeatures(true)}
+                variant="outline"
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Go Premium
+              </Button>
+            </div>
           </div>
         )}
       </div>
@@ -280,7 +429,11 @@ export default function Dating() {
       <BottomActions 
         onLike={() => handleSwipe('right')}
         onPass={() => handleSwipe('left')}
+        onSuperLike={() => setShowSuperLike(true)}
+        onBoost={() => setShowBoost(true)}
         disabled={!currentProfile || !canSwipe}
+        canSuperLike={canUseFeature('super_like')}
+        canBoost={canUseFeature('boost')}
       />
 
       {/* Show banner ad for free users */}
@@ -299,6 +452,76 @@ export default function Dating() {
           onClose={() => setShowProUpgrade(false)}
           onUpgrade={handleProUpgrade}
           remainingSwipes={remainingSwipes}
+        />
+      )}
+
+      {showSuperLike && currentProfile && (
+        <SuperLikeModal
+          isOpen={showSuperLike}
+          onClose={() => setShowSuperLike(false)}
+          onSuperLike={handleSuperLike}
+          profile={currentProfile}
+          remainingSuperLikes={superLikesRemaining}
+        />
+      )}
+
+      {showBoost && (
+        <BoostModal
+          isOpen={showBoost}
+          onClose={() => setShowBoost(false)}
+          onBoost={handleBoost}
+          availableBoosts={boostsRemaining}
+        />
+      )}
+
+      {showVideoCall && matchedProfile && (
+        <VideoCallModal
+          isOpen={showVideoCall}
+          onClose={() => setShowVideoCall(false)}
+          matchName={matchedProfile.full_name || matchedProfile.name}
+          matchPhoto={matchedProfile.photos?.[0] || matchedProfile.images?.[0]}
+        />
+      )}
+
+      {showReadReceipts && (
+        <ReadReceiptModal
+          isOpen={showReadReceipts}
+          onClose={() => setShowReadReceipts(false)}
+          onUpgrade={handleProUpgrade}
+        />
+      )}
+
+      {showIncognito && (
+        <IncognitoModeModal
+          isOpen={showIncognito}
+          onClose={() => setShowIncognito(false)}
+          onActivate={toggleIncognito}
+          isIncognito={isIncognito}
+        />
+      )}
+
+      {showPremiumFeatures && (
+        <PremiumFeatures
+          onClose={() => setShowPremiumFeatures(false)}
+          onUpgrade={handleProUpgrade}
+        />
+      )}
+
+      {showProfileOptimizer && (
+        <ProfileOptimizer
+          onClose={() => setShowProfileOptimizer(false)}
+        />
+      )}
+
+      {showDatingCoach && (
+        <DatingCoachBot
+          onClose={() => setShowDatingCoach(false)}
+        />
+      )}
+
+      {showSmartRecommendations && (
+        <SmartMatchRecommendations
+          onClose={() => setShowSmartRecommendations(false)}
         />
       )}
 
