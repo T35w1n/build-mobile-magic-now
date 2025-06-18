@@ -15,6 +15,11 @@ export function useSwipeTracking() {
   useEffect(() => {
     if (user) {
       loadSwipeData();
+    } else {
+      // If no user, set loading to false immediately
+      setLoading(false);
+      setDailySwipes(0);
+      setIsProUser(false);
     }
   }, [user]);
 
