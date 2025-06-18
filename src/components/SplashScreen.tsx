@@ -49,7 +49,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           showTagline ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
         }`}>
           <p className="text-xl text-white/90 font-medium animate-fade-in">
-            Where Hearts Connect
+            kom ons kyk 'n lyn?
           </p>
         </div>
 

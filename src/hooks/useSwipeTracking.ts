@@ -24,33 +24,50 @@ export function useSwipeTracking() {
   }, [user]);
 
   const loadSwipeData = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Check if user is Pro
-      const { data: profile } = await supabase
+      // Check if user is Pro with proper error handling
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('is_pro')
         .eq('id', user.id)
         .single();
 
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error fetching profile:', profileError);
+      }
+
       setIsProUser(profile?.is_pro || false);
 
-      // Get today's swipes count with better date handling
+      // Get today's swipes count with proper timezone handling
       const today = new Date();
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const { data: swipes } = await supabase
+      const { data: swipes, error: swipesError } = await supabase
         .from('matches')
         .select('id')
         .eq('user_id', user.id)
-        .gte('created_at', startOfDay.toISOString())
-        .lt('created_at', endOfDay.toISOString());
+        .gte('created_at', today.toISOString())
+        .lt('created_at', tomorrow.toISOString());
 
-      setDailySwipes(swipes?.length || 0);
+      if (swipesError) {
+        console.error('Error fetching swipes:', swipesError);
+        // Set to 0 on error to prevent unlimited swiping
+        setDailySwipes(0);
+      } else {
+        setDailySwipes(swipes?.length || 0);
+      }
     } catch (error) {
       console.error('Error loading swipe data:', error);
+      // Reset to safe defaults on error
+      setDailySwipes(0);
+      setIsProUser(false);
     } finally {
       setLoading(false);
     }
@@ -59,8 +76,16 @@ export function useSwipeTracking() {
   const canSwipe = () => {
     if (!user) return false;
     
-    // Rate limiting check
-    if (!RateLimiter.isAllowed(`swipe_${user.id}`, 50, 60000)) {
+    // Enhanced rate limiting with multiple checks
+    const userId = user.id;
+    if (!RateLimiter.isAllowed(`swipe_${userId}`, 50, 60000)) {
+      console.warn('Rate limit exceeded for user:', userId);
+      return false;
+    }
+    
+    // Additional rate limiting for suspicious activity
+    if (!RateLimiter.isAllowed(`swipe_burst_${userId}`, 10, 10000)) {
+      console.warn('Burst rate limit exceeded for user:', userId);
       return false;
     }
     
@@ -68,7 +93,13 @@ export function useSwipeTracking() {
   };
 
   const recordSwipe = async () => {
-    if (!canSwipe()) return false;
+    if (!canSwipe() || !user) return false;
+    
+    // Validate current swipe count before incrementing
+    if (!isProUser && dailySwipes >= FREE_SWIPE_LIMIT) {
+      console.warn('Attempted to exceed daily swipe limit');
+      return false;
+    }
     
     setDailySwipes(prev => prev + 1);
     return true;
