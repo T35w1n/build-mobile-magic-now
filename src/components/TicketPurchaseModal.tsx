@@ -8,6 +8,10 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type TicketStatus = Database['public']['Enums']['ticket_status'];
+type PaymentStatus = Database['public']['Enums']['payment_status'];
 
 interface Event {
   id: string;
@@ -44,7 +48,7 @@ export function TicketPurchaseModal({ event, isOpen, onClose }: TicketPurchaseMo
         attendee_id: user.id,
         ticket_code: ticketCodeResult,
         purchase_price: event.ticket_price,
-        status: event.ticket_price === 0 ? 'paid' : 'pending'
+        status: (event.ticket_price === 0 ? 'paid' : 'pending') as TicketStatus
       };
 
       const { data: ticket, error: ticketError } = await supabase
@@ -91,7 +95,7 @@ export function TicketPurchaseModal({ event, isOpen, onClose }: TicketPurchaseMo
         amount: event.ticket_price,
         commission_amount: commission,
         net_amount: netAmount,
-        status: 'pending'
+        status: 'pending' as PaymentStatus
       };
 
       const { error: paymentError } = await supabase
@@ -120,12 +124,15 @@ export function TicketPurchaseModal({ event, isOpen, onClose }: TicketPurchaseMo
       setTimeout(async () => {
         await supabase
           .from('tickets')
-          .update({ status: 'paid' })
+          .update({ status: 'paid' as TicketStatus })
           .eq('id', ticket.id);
         
         await supabase
           .from('payments')
-          .update({ status: 'completed', processed_at: new Date().toISOString() })
+          .update({ 
+            status: 'completed' as PaymentStatus, 
+            processed_at: new Date().toISOString() 
+          })
           .eq('ticket_id', ticket.id);
       }, 2000);
 

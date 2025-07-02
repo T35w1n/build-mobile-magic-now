@@ -9,6 +9,9 @@ import { Calendar, MapPin, Users, DollarSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type EventStatus = Database['public']['Enums']['event_status'];
 
 interface CreateEventModalProps {
   isOpen: boolean;
@@ -53,7 +56,7 @@ export function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
         guest_limit: parseInt(formData.guest_limit),
         banner_image: formData.banner_image || null,
         promoter_id: user.id,
-        status: 'draft'
+        status: 'draft' as EventStatus
       };
 
       const { error } = await supabase

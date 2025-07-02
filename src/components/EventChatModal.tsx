@@ -21,8 +21,8 @@ interface Message {
   user_id: string;
   created_at: string;
   profiles?: {
-    full_name: string;
-  };
+    full_name: string | null;
+  } | null;
 }
 
 interface EventChatModalProps {
@@ -53,28 +53,41 @@ export function EventChatModal({ event, isOpen, onClose }: EventChatModalProps) 
 
   const fetchMessages = async () => {
     try {
-      const { data, error } = await supabase
+      // First get the messages
+      const { data: messagesData, error: messagesError } = await supabase
         .from('event_chats')
-        .select(`
-          id,
-          message,
-          user_id,
-          created_at,
-          profiles:user_id (
-            full_name
-          )
-        `)
+        .select('id, message, user_id, created_at')
         .eq('event_id', event.id)
         .order('created_at', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching messages:', error);
-      } else {
-        setMessages(data || []);
-        scrollToBottom();
+      if (messagesError) {
+        console.error('Error fetching messages:', messagesError);
+        setMessages([]);
+        return;
       }
+
+      // Then get user profiles for these messages
+      const userIds = [...new Set(messagesData?.map(msg => msg.user_id) || [])];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      // Combine messages with profile data
+      const messagesWithProfiles = messagesData?.map(msg => ({
+        ...msg,
+        profiles: profilesData?.find(profile => profile.id === msg.user_id) || null
+      })) || [];
+
+      setMessages(messagesWithProfiles);
+      scrollToBottom();
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setMessages([]);
     } finally {
       setLoadingMessages(false);
     }

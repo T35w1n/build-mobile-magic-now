@@ -2,9 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['user_role'];
 
 export function useUserRole() {
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -43,7 +46,7 @@ export function useUserRole() {
     }
   };
 
-  const updateUserRole = async (role: string) => {
+  const updateUserRole = async (role: UserRole) => {
     if (!user) return false;
 
     try {
