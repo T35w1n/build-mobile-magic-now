@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AppInitializer } from "@/components/AppInitializer";
 import Index from "./pages/Index";
 import Dating from "./pages/Dating";
+import Events from "./pages/Events";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
                 <Routes>
                   <Route path="/" element={<Dating />} />
                   <Route path="/welcome" element={<Index />} />
+                  <Route path="/events" element={<Events />} />
                   <Route path="/terms" element={<Terms />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
