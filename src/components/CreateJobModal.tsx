@@ -12,6 +12,10 @@ import { X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type JobCategory = Database['public']['Enums']['job_category'];
+type JobType = Database['public']['Enums']['job_type'];
 
 interface CreateJobModalProps {
   isOpen: boolean;
@@ -44,13 +48,13 @@ export function CreateJobModal({ isOpen, onClose }: CreateJobModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const jobCategories = [
+  const jobCategories: JobCategory[] = [
     'technology', 'healthcare', 'finance', 'education', 'retail',
     'hospitality', 'construction', 'manufacturing', 'transportation',
     'marketing', 'sales', 'customer_service', 'other'
   ];
 
-  const jobTypes = [
+  const jobTypes: JobType[] = [
     'full_time', 'part_time', 'contract', 'freelance', 'internship', 'temporary'
   ];
 
@@ -87,6 +91,8 @@ export function CreateJobModal({ isOpen, onClose }: CreateJobModalProps) {
         employer_id: user.id,
         salary_min: formData.salary_min ? parseFloat(formData.salary_min) : null,
         salary_max: formData.salary_max ? parseFloat(formData.salary_max) : null,
+        category: formData.category as JobCategory,
+        job_type: formData.job_type as JobType,
         requirements: requirements.length > 0 ? requirements : null,
         benefits: benefits.length > 0 ? benefits : null,
         application_deadline: formData.application_deadline || null
