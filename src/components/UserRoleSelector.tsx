@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Users, Star, Calendar } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface UserRoleSelectorProps {
   isOpen: boolean;
@@ -17,7 +20,7 @@ export function UserRoleSelector({ isOpen, onClose, onRoleSelected }: UserRoleSe
   const { updateUserRole } = useUserRole();
   const { toast } = useToast();
 
-  const handleRoleSelect = async (role: string) => {
+  const handleRoleSelect = async (role: UserRole) => {
     setLoading(true);
     try {
       const success = await updateUserRole(role);
