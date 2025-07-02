@@ -119,6 +119,116 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          applicant_id: string
+          applied_at: string
+          cover_letter: string | null
+          id: string
+          job_id: string
+          resume_url: string | null
+          status: string | null
+        }
+        Insert: {
+          applicant_id: string
+          applied_at?: string
+          cover_letter?: string | null
+          id?: string
+          job_id: string
+          resume_url?: string | null
+          status?: string | null
+        }
+        Update: {
+          applicant_id?: string
+          applied_at?: string
+          cover_letter?: string | null
+          id?: string
+          job_id?: string
+          resume_url?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_listings: {
+        Row: {
+          application_deadline: string | null
+          benefits: string[] | null
+          category: Database["public"]["Enums"]["job_category"]
+          company_name: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string
+          employer_id: string
+          experience_level: string | null
+          id: string
+          is_remote: boolean | null
+          job_type: Database["public"]["Enums"]["job_type"]
+          location: string
+          requirements: string[] | null
+          salary_currency: string | null
+          salary_max: number | null
+          salary_min: number | null
+          status: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          application_deadline?: string | null
+          benefits?: string[] | null
+          category: Database["public"]["Enums"]["job_category"]
+          company_name: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description: string
+          employer_id: string
+          experience_level?: string | null
+          id?: string
+          is_remote?: boolean | null
+          job_type: Database["public"]["Enums"]["job_type"]
+          location: string
+          requirements?: string[] | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          application_deadline?: string | null
+          benefits?: string[] | null
+          category?: Database["public"]["Enums"]["job_category"]
+          company_name?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string
+          employer_id?: string
+          experience_level?: string | null
+          id?: string
+          is_remote?: boolean | null
+          job_type?: Database["public"]["Enums"]["job_type"]
+          location?: string
+          requirements?: string[] | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       "love ra": {
         Row: {
           created_at: string
@@ -386,6 +496,27 @@ export type Database = {
     }
     Enums: {
       event_status: "draft" | "published" | "featured" | "cancelled"
+      job_category:
+        | "technology"
+        | "healthcare"
+        | "finance"
+        | "education"
+        | "retail"
+        | "hospitality"
+        | "construction"
+        | "manufacturing"
+        | "transportation"
+        | "marketing"
+        | "sales"
+        | "customer_service"
+        | "other"
+      job_type:
+        | "full_time"
+        | "part_time"
+        | "contract"
+        | "freelance"
+        | "internship"
+        | "temporary"
       payment_status: "pending" | "completed" | "failed" | "refunded"
       ticket_status: "pending" | "paid" | "cancelled" | "refunded"
       user_role: "attendee" | "promoter" | "admin"
@@ -505,6 +636,29 @@ export const Constants = {
   public: {
     Enums: {
       event_status: ["draft", "published", "featured", "cancelled"],
+      job_category: [
+        "technology",
+        "healthcare",
+        "finance",
+        "education",
+        "retail",
+        "hospitality",
+        "construction",
+        "manufacturing",
+        "transportation",
+        "marketing",
+        "sales",
+        "customer_service",
+        "other",
+      ],
+      job_type: [
+        "full_time",
+        "part_time",
+        "contract",
+        "freelance",
+        "internship",
+        "temporary",
+      ],
       payment_status: ["pending", "completed", "failed", "refunded"],
       ticket_status: ["pending", "paid", "cancelled", "refunded"],
       user_role: ["attendee", "promoter", "admin"],

@@ -11,6 +11,7 @@ import { AppInitializer } from "@/components/AppInitializer";
 import Index from "./pages/Index";
 import Dating from "./pages/Dating";
 import Events from "./pages/Events";
+import Jobs from "./pages/Jobs";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +39,7 @@ const App = () => (
                   <Route path="/" element={<Dating />} />
                   <Route path="/welcome" element={<Index />} />
                   <Route path="/events" element={<Events />} />
+                  <Route path="/jobs" element={<Jobs />} />
                   <Route path="/terms" element={<Terms />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
